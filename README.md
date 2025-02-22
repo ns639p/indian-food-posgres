@@ -32,8 +32,6 @@ DB_DIALECT=postgres
 
 Create a PostgreSQL database named 'indian-food'
 
-Seed the database. Doing it only once is enough
-node seed/dishseeder.js
+Seed the database. Doing it only once is enough => node seed/dishseeder.js
 
-Start the server
-node server.js
+Start the server => node server.js
