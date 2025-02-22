@@ -6,35 +6,44 @@ class APIFeatures {
     this.queryOptions = {}; // Options to pass to Sequelize's findAll()
   }
 
+  
   filter() {
     const queryObj = { ...this.queryParams };
     const excludedFields = ['page', 'sort', 'limit', 'fields'];
     excludedFields.forEach(el => delete queryObj[el]);
 
     const where = {};
+    
     for (const key in queryObj) {
       if (queryObj.hasOwnProperty(key)) {
-        if (key.includes('[')) {
-          // e.g., prep_time[gte]=15
-          const match = key.match(/(.+)\[(gte|gt|lte|lt)\]/);
-          if (match) {
-            const field = match[1];
-            const operator = match[2];
+        // Check if the value is an object containing operators
+        if (typeof queryObj[key] === 'object' && !Array.isArray(queryObj[key])) {
+          const fieldOperators = queryObj[key];
+          where[key] = {};
+          
+          for (const opKey in fieldOperators) {
             let op;
-            switch (operator) {
+            switch (opKey) {
               case 'gte': op = Op.gte; break;
               case 'gt': op = Op.gt; break;
               case 'lte': op = Op.lte; break;
               case 'lt': op = Op.lt; break;
+              default: continue;
             }
-            if (!where[field]) where[field] = {};
-            where[field][op] = queryObj[key];
+            
+            // Convert the value to number for numeric fields
+            const numericValue = Number(fieldOperators[opKey]);
+            if (!isNaN(numericValue)) {
+              where[key][op] = numericValue;
+            }
           }
         } else {
+          // Handle normal fields
           where[key] = queryObj[key];
         }
       }
     }
+
     this.queryOptions.where = where;
     return this;
   }
